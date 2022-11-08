@@ -1,0 +1,5 @@
+ATC
+TCG
+CGA
+GAT
+AAA

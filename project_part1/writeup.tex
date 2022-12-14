@@ -1,0 +1,32 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[letterpaper, total={6in, 8in}]{geometry}
+\usepackage{algpseudocode}
+\title{CME 211 Project Part 1}
+\author{Zherui Lin}
+\begin{document}
+\paragraph{} CME 211 Project Part 1
+\paragraph{} Zherui Lin
+\paragraph{} The pseudo-code for the CG algorithm to solve $\mathbf{Ax} = \mathbf{b}$ is as below, where the initial guess of solution $\mathbf{x}_0$ and the converge tolerance $t$ should be provided as input.
+\linebreak
+\begin{algorithmic}
+\Function{CG}{$\mathbf{A}, \mathbf{b}, \mathbf{x}_0, t$}
+\State $n_{max} = dim(\mathbf{x}_0)$
+\State $\mathbf{r}_0 = \mathbf{b} - \mathbf{A}\mathbf{x}_0$
+\State $\mathbf{p}_0 = \mathbf{r}_0$
+\State $n = 0$
+\While{$n < n_{max}$}
+    \State $n = n + 1$
+    \State $\alpha_n = (\mathbf{r}_n^\mathrm{T}\mathbf{r}_n) / (\mathbf{p}_n^\mathrm{T}\mathbf{A}\mathbf{p}_n)$
+    \State $\mathbf{x}_{n+1} = \mathbf{x}_n + \alpha_n\mathbf{p}_n$
+    \State $\mathbf{r}_{n+1} = \mathbf{r}_n - \alpha_n\mathbf{A}\mathbf{p}_n$
+    \If{$\|\mathbf{r}_{n+1}\| / \|\mathbf{r}_0\| < t$}
+        \State \Return $\mathbf{x}_{n+1}$
+    \EndIf
+    \State $\beta_n = (\mathbf{r}_{n+1}^\mathrm{T}\mathbf{r}_{n+1})) / (\mathbf{r}_n^\mathrm{T}\mathbf{r}_n))$
+    \State $\mathbf{p}_{n+1} = \mathbf{r}_{n+1} + \beta_n\mathbf{p}_n$
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\paragraph{} The implementation of CGSolver() function makes use of several additional functions that perform common vector and matrix operations, including addition of two vectors, scalar multiplication of a vector, matrix multiplication of a vector, calculation of the dot product of two vectors, and calculation the L2 norm of a vector. These functions are the most basic vector and matrix operations, and all operations in the GSSolver() on vectors and matrices can be decomposed into these basic operations. Thus making chain call expressions on these basic operations can neatly perform each complex operation in CGSolver(), which can definitely eliminate redundant codes.
+\paragraph{} These functions of Common basic vector and matrix operations are declared and implemented in matvecops.hpp and matvecops.cpp. CGSolver.cpp can simply include matvecops.hpp to make use of these functions, which is a good practice on decomposition and abstraction in this large project.
+\end{document}

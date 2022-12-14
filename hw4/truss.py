@@ -161,6 +161,7 @@ class Truss:
         # only take beam forces as result and disgard reaction forces at supports
         self.forces = solution[:self.n_beams]
 
+
     def PlotGeometry(self, plot_file):
         '''
         Plot beam geometry and save it to the input path.
@@ -179,10 +180,12 @@ class Truss:
         plt.gca().margins(0.05,0.05)
         plt.savefig(plot_file)
 
+
     def __repr__(self):
         '''
         Return the beam forces with ids in order.
         '''
+
         res = ' Beam       Force\n'
         res += '-----------------\n'
         for i in range(self.n_beams):

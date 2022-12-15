@@ -1,0 +1,76 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[letterpaper, total={6in, 8in}]{geometry}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\begin{document}
+\title{CME 211 Project}
+\author{Zherui Lin}
+\date{December 15th 2022}
+\maketitle
+\section{Introduction}
+\paragraph{} The project aims at solving the 2D steady-state heat equation on a simple geometry using a sparse matrix solver written in C++. The physical system of interest is a pipe transferring hot fluid, with temperature $T_h$. To keep the exterior of pipe cool, a series of cold air jets, with temperature $T_c$ are equally distributed along the pipe and continuously impinge on the pipe surface. The simplified model of the system is one periodic section of the pipe wall, where the cool jet exactly points at the midpoint along the length of the periodic section. The objective is to determine the value of the mean temperature and display the temperature distribution within the pipe wall of the periodic section at steady-state. The problem is solved by discrete steady-state heat equations defined in each point on an equally spaced Cartesian grid of the pipe wall and applying appropriate boundary conditions at the exposed surfaces of the pipe wall and the periodic boundaries~\cite{CME211:ProjectPart1}.
+\section{CG Solver}
+\paragraph{} The key process in the project is to solve a system of discrete steady-state heat equations, which are linear. Thus we have to implement a method to solve the linear system, especially for sparse matrix, which is the feature of this system. The implementation in this project is a sparse Conjugate Gradient (CG) solver. The pseudo-code for the CG algorithm to solve $\mathbf{Ax} = \mathbf{b}$ is as below, where the initial guess of solution $\mathbf{x}_0$ and the converge tolerance $t$ should be provided as input as well~\cite{CME211:ProjectPart2}.
+\linebreak
+\begin{algorithmic}
+\Function{CG}{$\mathbf{A}, \mathbf{b}, \mathbf{x}_0, t$}
+\State $n_{max} = dim(\mathbf{x}_0)$
+\State $\mathbf{r}_0 = \mathbf{b} - \mathbf{A}\mathbf{x}_0$
+\State $\mathbf{p}_0 = \mathbf{r}_0$
+\State $n = 0$
+\While{$n < n_{max}$}
+    \State $n = n + 1$
+    \State $\alpha_n = (\mathbf{r}_n^\mathrm{T}\mathbf{r}_n) / (\mathbf{p}_n^\mathrm{T}\mathbf{A}\mathbf{p}_n)$
+    \State $\mathbf{x}_{n+1} = \mathbf{x}_n + \alpha_n\mathbf{p}_n$
+    \State $\mathbf{r}_{n+1} = \mathbf{r}_n - \alpha_n\mathbf{A}\mathbf{p}_n$
+    \If{$\|\mathbf{r}_{n+1}\| / \|\mathbf{r}_0\| < t$}
+        \State \Return $\mathbf{x}_{n+1}$
+    \EndIf
+    \State $\beta_n = (\mathbf{r}_{n+1}^\mathrm{T}\mathbf{r}_{n+1}) / (\mathbf{r}_n^\mathrm{T}\mathbf{r}_n)$
+    \State $\mathbf{p}_{n+1} = \mathbf{r}_{n+1} + \beta_n\mathbf{p}_n$
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\paragraph{} In the implementation written in C++, the matrix $\mathbf{A}$ is wrapped up as a custom-defined SparseMatrix object, which we can easily interacted with. The CGSolver() method itself will be called by a custom-defined HeatEquation2D object, within which a specific setup can be solved. In summary, a specific physical setup will initialize a HeatEquation2D object, within which a SparseMatrix will be built up interactively, and it will be passed into GCSolver() method to solve this specific steady-state heat system.
+\section{User Guide}
+\paragraph{} The project directory contains a bunch of .hpp and .cpp files. To compile C++ codes, \textbf{makefile} has wrapped up compile commands to compile and assemble all source files and link them together to output an executable main program. The detailed compile commands are as below.
+\begin{verbatim}
+    g++ -c -o CGSolver.o CGSolver.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -c -o COO2CSR.o COO2CSR.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -c -o heat.o heat.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -c -o main.o main.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -c -o matvecops.o matvecops.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -c -o sparse.o sparse.cpp -O3 -std=c++11 -Wall -Wconversion -Wextra
+    g++ -o main CGSolver.o COO2CSR.o heat.o main.o matvecops.o sparse.o
+\end{verbatim}
+\paragraph{} To run the \textbf{main} program, the command usage is as below, where $<$input file$>$ is the file that contains physical setups of the pipe system, and $<$soln prefix$>$ is the prefix of the name of the solution files. Each solution file will contain the sequence of temperature data distribution in the 2D grid after specific times of iteration.
+\begin{verbatim}
+    ./main <input file> <soln prefix>
+\end{verbatim}
+\paragraph{} To run the \textbf{postprocess.py} program, the command usage is as below, where $<$input file$>$ is the same as above, and $<$solution file$>$ is the solution file we want to process. The program will output the mean temperature of the given solution file and generate a image file with the the same name as the solution file and a suffix of .png displaying a pseudocolor plot with the mean temperature isoline.
+\begin{verbatim}
+    python3 postprocess.py <input file> <solution file>
+\end{verbatim}
+\paragraph{} To run the \textbf{bonus.py} program, the command usage is as below, where $<$input file$>$ and $<$solution prefix$>$ are the same as above. The program will generate an .gif animation with the name of the solution prefix, which displays the development of the temperature distribution of the physical setup given by the input file, generated by a series of valid solution files with the given solution prefix.
+\begin{verbatim}
+    python3 bonus.py <input file> <solution prefix>
+\end{verbatim}
+\section{Example Figures}
+\paragraph{} The output images of converged solutions generated by \textbf{python3.py} for \textbf{input1.txt} and \textbf{input2.txt} are shown in Figure 1 and Figure 2 on the next page.
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.75\linewidth]{solution1142.png}
+\caption{Pseudocolor Plot with Mean Temperature isoline for \textbf{input1.txt}}
+\label{fig:input1}
+\end{center}
+\end{figure}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.75\linewidth]{solution2161.png}
+\caption{Pseudocolor Plot with Mean Temperature isoline for \textbf{input2.txt}}
+\label{fig:input2}
+\end{center}
+\end{figure}
+\bibliographystyle{unsrt}
+\bibliography{references}
+\end{document}

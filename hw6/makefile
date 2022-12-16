@@ -5,7 +5,6 @@ RM := -rm -f
 
 TARGET := main
 OBJS := hw6.o image.o main.o
-OUTPUT := BoxBlur*.jpg
 
 $(TARGET): $(OBJS)
 	$(CXX) -o $(TARGET) $(OBJS) $(LIBFLAG)
@@ -19,5 +18,5 @@ run: $(TARGET)
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) $(TARGET) $(OUTPUT)
+	$(RM) $(OBJS) $(TARGET)
 	
